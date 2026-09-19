@@ -48,7 +48,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "liuruichen",
 
 	// 站点 URL
-	site_url: "hhttps://liuruiench.dpdns.org",
+	site_url: "https://liuruiench.dpdns.org",
 
 	// 站点描述
 	description:
