@@ -540,4 +540,14 @@ export const en: Translation = {
 	[Key.exitImmersiveReading]: "Exit Immersive Reading",
 	[Key.tocExpand]: "Expand directory",
 	[Key.tocCollapse]: "Collapse directory",
+
+	// Weather widget
+	[Key.weatherTitle]: "Local Weather",
+	[Key.weatherLoading]: "Loading...",
+	[Key.weatherUnknownLocation]: "Unknown location",
+	[Key.weatherFeelsLike]: "Feels like",
+	[Key.weatherHumidity]: "Humidity",
+	[Key.weatherWind]: "Wind",
+	[Key.weatherDenied]: "Location permission denied\nClick to retry",
+	[Key.weatherRetry]: "Retry",
 };
