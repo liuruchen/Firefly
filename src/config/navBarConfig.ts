@@ -92,6 +92,13 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			LinkPresets.About,
 		],
 	});
+  
+  	// 音乐页面
+	links.push({
+		name: "音乐",
+		url: "/music/",
+		icon: "material-symbols:music-note-rounded",
+	});
 
 	// 自定义导航栏链接
 	links.push({
