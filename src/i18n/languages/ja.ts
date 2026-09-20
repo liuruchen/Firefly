@@ -537,4 +537,14 @@ export const ja: Translation = {
 	[Key.exitImmersiveReading]: "没入型リーディングを終了する",
 	[Key.tocExpand]: "目錄を開く",
 	[Key.tocCollapse]: "目錄をたたむ",
+
+	// 天気ウィジェット
+	[Key.weatherTitle]: "現地の天気",
+	[Key.weatherLoading]: "読み込み中...",
+	[Key.weatherUnknownLocation]: "不明な場所",
+	[Key.weatherFeelsLike]: "体感",
+	[Key.weatherHumidity]: "湿度",
+	[Key.weatherWind]: "風速",
+	[Key.weatherDenied]: "位置情報が拒否されました\nクリックして再試行",
+	[Key.weatherRetry]: "再試行",
 };
