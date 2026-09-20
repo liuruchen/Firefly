@@ -521,6 +521,16 @@ enum I18nKey {
 	exitImmersiveReading = "exitImmersiveReading",
 	tocExpand = "tocExpand",
 	tocCollapse = "tocCollapse",
+	
+    // 天气组件
+	weatherTitle = "weatherTitle",
+	weatherLoading = "weatherLoading",
+	weatherUnknownLocation = "weatherUnknownLocation",
+	weatherFeelsLike = "weatherFeelsLike",
+	weatherHumidity = "weatherHumidity",
+	weatherWind = "weatherWind",
+	weatherDenied = "weatherDenied",
+	weatherRetry = "weatherRetry",
 }
 
 export default I18nKey;
