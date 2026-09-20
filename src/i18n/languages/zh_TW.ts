@@ -529,4 +529,14 @@ export const zh_TW: Translation = {
 	[Key.exitImmersiveReading]: "退出沉浸閱讀",
 	[Key.tocExpand]: "展開目錄",
 	[Key.tocCollapse]: "摺疊目錄",
+
+	// 天氣組件
+	[Key.weatherTitle]: "本地天氣",
+	[Key.weatherLoading]: "載入中...",
+	[Key.weatherUnknownLocation]: "未知位置",
+	[Key.weatherFeelsLike]: "體感",
+	[Key.weatherHumidity]: "濕度",
+	[Key.weatherWind]: "風速",
+	[Key.weatherDenied]: "定位權限被拒絕\n點擊重試授權",
+	[Key.weatherRetry]: "重試",
 };
