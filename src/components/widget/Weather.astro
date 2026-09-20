@@ -1,0 +1,427 @@
+---
+import { Icon } from "astro-icon/components";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { WidgetComponentConfig } from "@/types/config";
+
+interface Props {
+	class?: string;
+	style?: string;
+	widgetConfig?: WidgetComponentConfig;
+}
+const { class: className, style, widgetConfig } = Astro.props;
+
+const showTitle = widgetConfig?.showTitle !== false;
+---
+
+<WidgetLayout
+	name={i18n(I18nKey.weatherTitle)}
+	showTitle={showTitle}
+	id="weather-widget"
+	class={className}
+	style={style}
+>
+	<div class="weather-widget relative">
+		<!-- 天气主体 -->
+		<div class="weather-main flex items-center gap-3 mb-3">
+			<!-- 天气图标 -->
+			<div class="weather-icon-wrapper shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-(--primary)/20 to-(--primary)/5 flex items-center justify-center relative">
+				<!-- 预渲染主要天气图标，通过 JS 切换显示（使用确认存在的 Material Symbols 图标） -->
+				<Icon name="material-symbols:sunny-rounded" class="weather-icon w-icon-sun absolute text-3xl text-(--primary)" />
+				<Icon name="material-symbols:partly-cloudy-day-rounded" class="weather-icon w-icon-partly absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:cloud-rounded" class="weather-icon w-icon-cloud absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:foggy-rounded" class="weather-icon w-icon-fog absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:water-drop-rounded" class="weather-icon w-icon-rain absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:rainy-rounded" class="weather-icon w-icon-rain-heavy absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:ac-unit-rounded" class="weather-icon w-icon-snow absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:thunderstorm-rounded" class="weather-icon w-icon-thunder absolute text-3xl text-(--primary) hidden" />
+				<Icon name="material-symbols:help-outline-rounded" class="weather-icon w-icon-unknown absolute text-3xl text-(--primary) hidden" />
+			</div>
+
+			<!-- 温度和天气描述 -->
+			<div class="flex-1 min-w-0">
+				<div class="flex items-baseline gap-1">
+					<div class="weather-temp text-2xl font-bold text-neutral-800 dark:text-neutral-100 leading-tight">
+						--°
+					</div>
+					<!-- AQI 标签 -->
+					<span class="weather-aqi-badge hidden px-1.5 py-0.5 rounded text-[10px] font-bold">
+						--
+					</span>
+				</div>
+				<div class="weather-desc text-sm text-neutral-500 dark:text-neutral-400 truncate">
+					{i18n(I18nKey.weatherLoading)}
+				</div>
+			</div>
+		</div>
+
+		<!-- 城市和风向 -->
+		<div class="weather-location flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500 mb-3">
+			<Icon name="material-symbols:location-on-rounded" class="text-sm shrink-0" />
+			<span class="weather-city truncate flex-1">{i18n(I18nKey.weatherUnknownLocation)}</span>
+			<span class="weather-wind shrink-0">--</span>
+		</div>
+
+		<!-- 详细信息网格 -->
+		<div class="weather-details grid grid-cols-3 gap-2 text-center">
+			<div class="weather-detail-item bg-neutral-50 dark:bg-white/5 rounded-lg py-2 px-1">
+				<div class="weather-feels-like-val text-sm font-bold text-neutral-700 dark:text-neutral-200">--°</div>
+				<div class="text-[10px] text-neutral-400">{i18n(I18nKey.weatherFeelsLike)}</div>
+			</div>
+			<div class="weather-detail-item bg-neutral-50 dark:bg-white/5 rounded-lg py-2 px-1">
+				<div class="weather-humidity-val text-sm font-bold text-neutral-700 dark:text-neutral-200">--%</div>
+				<div class="text-[10px] text-neutral-400">{i18n(I18nKey.weatherHumidity)}</div>
+			</div>
+			<div class="weather-detail-item bg-neutral-50 dark:bg-white/5 rounded-lg py-2 px-1">
+				<div class="weather-aqi-val text-sm font-bold text-neutral-700 dark:text-neutral-200">--</div>
+				<div class="text-[10px] text-neutral-400">空气</div>
+			</div>
+		</div>
+
+		<!-- 加载中状态 -->
+		<div class="weather-loading absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-lg transition-opacity duration-300">
+			<div class="w-6 h-6 text-(--primary) animate-spin mb-2">
+				<Icon name="material-symbols:sync-rounded" class="text-2xl" />
+			</div>
+			<p class="text-xs text-neutral-400">{i18n(I18nKey.weatherLoading)}</p>
+		</div>
+
+		<!-- 错误状态 -->
+		<div class="weather-error hidden absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-lg px-4">
+			<Icon name="material-symbols:cloud-off-rounded" class="text-2xl text-neutral-400 mb-2" />
+			<p class="weather-error-text text-xs text-neutral-400 text-center">获取失败</p>
+			<button class="weather-retry-btn mt-2 px-3 py-1 text-xs bg-(--primary)/10 text-(--primary) rounded-lg hover:bg-(--primary)/20 transition-colors active:scale-95">
+				{i18n(I18nKey.weatherRetry)}
+			</button>
+		</div>
+	</div>
+</WidgetLayout>
+
+<script is:inline>
+(function () {
+	var widget = document.querySelector('#weather-widget');
+	if (!widget) return;
+
+	// UI 元素
+	var ui = {
+		temp: widget.querySelector('.weather-temp'),
+		desc: widget.querySelector('.weather-desc'),
+		city: widget.querySelector('.weather-city'),
+		wind: widget.querySelector('.weather-wind'),
+		feelsLike: widget.querySelector('.weather-feels-like-val'),
+		humidity: widget.querySelector('.weather-humidity-val'),
+		aqiVal: widget.querySelector('.weather-aqi-val'),
+		aqiBadge: widget.querySelector('.weather-aqi-badge'),
+		loading: widget.querySelector('.weather-loading'),
+		error: widget.querySelector('.weather-error'),
+		errorText: widget.querySelector('.weather-error-text'),
+		retryBtn: widget.querySelector('.weather-retry-btn')
+	};
+
+	// 缓存键
+	var CACHE_KEY = 'firefly-weather-cache-uapi';
+	var CACHE_DURATION = 15 * 60 * 1000; // 15 分钟
+
+	// AQI 等级颜色映射
+	var aqiColors = {
+		1: { bg: '#00e400', text: '#fff' }, // 优
+		2: { bg: '#ffff00', text: '#333' }, // 良
+		3: { bg: '#ff7e00', text: '#fff' }, // 轻度污染
+		4: { bg: '#ff0000', text: '#fff' }, // 中度污染
+		5: { bg: '#8f3f97', text: '#fff' }, // 重度污染
+		6: { bg: '#7e0023', text: '#fff' }  // 严重污染
+	};
+
+	// 天气图标代码映射（uapis.cn / QWeather 标准 → 图标 CSS class）
+	// 使用确认存在的 Material Symbols 图标
+	var iconClassMap = {
+		// 晴
+		'100': 'w-icon-sun',
+		'150': 'w-icon-sun',
+		// 多云 / 少云 / 晴间多云
+		'101': 'w-icon-partly',
+		'102': 'w-icon-partly',
+		'103': 'w-icon-partly',
+		'151': 'w-icon-partly',
+		'152': 'w-icon-partly',
+		'153': 'w-icon-partly',
+		// 阴
+		'104': 'w-icon-cloud',
+		// 雾 / 霾
+		'500': 'w-icon-fog',
+		'501': 'w-icon-fog',
+		'502': 'w-icon-fog',
+		'503': 'w-icon-fog',
+		'504': 'w-icon-fog',
+		'509': 'w-icon-fog',
+		'510': 'w-icon-fog',
+		'511': 'w-icon-fog',
+		'512': 'w-icon-fog',
+		'513': 'w-icon-fog',
+		'514': 'w-icon-fog',
+		'515': 'w-icon-fog',
+		// 小雨 / 阵雨 / 毛毛雨
+		'300': 'w-icon-rain',
+		'305': 'w-icon-rain',
+		'306': 'w-icon-rain',
+		'309': 'w-icon-rain',
+		'314': 'w-icon-rain',
+		'315': 'w-icon-rain',
+		'399': 'w-icon-rain',
+		// 中雨 / 大雨 / 暴雨 / 雷暴
+		'301': 'w-icon-rain-heavy',
+		'302': 'w-icon-thunder',
+		'303': 'w-icon-thunder',
+		'304': 'w-icon-thunder',
+		'307': 'w-icon-rain-heavy',
+		'308': 'w-icon-rain-heavy',
+		'310': 'w-icon-rain-heavy',
+		'311': 'w-icon-rain-heavy',
+		'312': 'w-icon-rain-heavy',
+		'313': 'w-icon-rain',
+		'316': 'w-icon-rain-heavy',
+		'317': 'w-icon-rain-heavy',
+		'318': 'w-icon-rain-heavy',
+		'340': 'w-icon-thunder',
+		'341': 'w-icon-thunder',
+		'342': 'w-icon-thunder',
+		// 雪 / 雨夹雪 / 冻雨
+		'400': 'w-icon-snow',
+		'401': 'w-icon-snow',
+		'402': 'w-icon-snow',
+		'403': 'w-icon-snow',
+		'404': 'w-icon-snow',
+		'405': 'w-icon-snow',
+		'406': 'w-icon-snow',
+		'407': 'w-icon-snow',
+		'408': 'w-icon-snow',
+		'409': 'w-icon-snow',
+		'410': 'w-icon-snow',
+		'411': 'w-icon-snow',
+		'412': 'w-icon-snow',
+		'499': 'w-icon-snow',
+	};
+
+	// 显示加载状态
+	function showLoading() {
+		ui.loading.classList.remove('hidden');
+		ui.loading.style.opacity = '1';
+		ui.error.classList.add('hidden');
+	}
+
+	// 隐藏加载状态
+	function hideLoading() {
+		ui.loading.style.opacity = '0';
+		setTimeout(function () {
+			ui.loading.classList.add('hidden');
+		}, 300);
+	}
+
+	// 显示错误
+	function showError(message) {
+		hideLoading();
+		ui.error.classList.remove('hidden');
+		ui.errorText.innerText = message;
+	}
+
+	// 渲染天气图标
+	function renderWeatherIcon(iconCode) {
+		var allIcons = widget.querySelectorAll('.weather-icon');
+		for (var i = 0; i < allIcons.length; i++) {
+			allIcons[i].classList.add('hidden');
+		}
+		var targetClass = iconClassMap[iconCode] || 'w-icon-unknown';
+		var target = widget.querySelector('.' + targetClass);
+		if (target) {
+			target.classList.remove('hidden');
+		}
+	}
+
+	// 格式化位置
+	function formatLocation(data) {
+		var parts = [];
+		if (data.province && data.province !== data.city) {
+			parts.push(data.province);
+		}
+		if (data.city) parts.push(data.city);
+		if (data.district && data.district !== data.city) {
+			parts.push(data.district);
+		}
+		return parts.join(' · ') || data.city || '未知位置';
+	}
+
+	// 渲染 AQI
+	function renderAqi(data) {
+		if (data.aqi !== undefined && data.aqi_category) {
+			ui.aqiVal.innerText = data.aqi_category;
+			ui.aqiBadge.classList.remove('hidden');
+			ui.aqiBadge.innerText = data.aqi;
+
+			var level = data.aqi_level || 1;
+			var colors = aqiColors[level] || aqiColors[1];
+			ui.aqiBadge.style.backgroundColor = colors.bg;
+			ui.aqiBadge.style.color = colors.text;
+
+			// AQI 值也染色
+			ui.aqiVal.style.color = colors.bg;
+		} else {
+			ui.aqiVal.innerText = '--';
+			ui.aqiVal.style.color = '';
+			ui.aqiBadge.classList.add('hidden');
+		}
+	}
+
+	// 完整渲染
+	function renderAll(data) {
+		hideLoading();
+		ui.error.classList.add('hidden');
+
+		// 温度
+		ui.temp.innerText = Math.round(data.temperature) + '°';
+
+		// 描述
+		ui.desc.innerText = data.weather || '--';
+
+		// 位置
+		ui.city.innerText = formatLocation(data);
+
+		// 风向风力
+		var windStr = '';
+		if (data.wind_direction) windStr += data.wind_direction;
+		if (data.wind_power) windStr += ' ' + data.wind_power;
+		ui.wind.innerText = windStr || '--';
+
+		// 体感温度
+		if (data.feels_like !== undefined) {
+			ui.feelsLike.innerText = Math.round(data.feels_like) + '°';
+		} else {
+			ui.feelsLike.innerText = '--°';
+		}
+
+		// 湿度
+		if (data.humidity !== undefined) {
+			ui.humidity.innerText = data.humidity + '%';
+		} else {
+			ui.humidity.innerText = '--%';
+		}
+
+		// AQI
+		renderAqi(data);
+
+		// 图标
+		renderWeatherIcon(data.weather_icon);
+	}
+
+	// 获取天气数据
+	function fetchWeather() {
+		var url = 'https://uapis.cn/api/v1/misc/weather?extended=true';
+		return fetch(url, {
+			method: 'GET',
+			credentials: 'omit'
+		}).then(function (r) {
+			if (!r.ok) throw new Error('HTTP ' + r.status);
+			return r.json();
+		}).then(function (data) {
+			// 检查返回数据格式
+			if (data && (data.temperature !== undefined || (data.data && data.data.temperature !== undefined))) {
+				// 有些 API 包装在 data 字段里
+				return data.data || data;
+			}
+			if (data && data.message) {
+				throw new Error(data.message);
+			}
+			return data;
+		});
+	}
+
+	// 从缓存读取
+	function getCache() {
+		try {
+			var raw = localStorage.getItem(CACHE_KEY);
+			if (!raw) return null;
+			var data = JSON.parse(raw);
+			if (Date.now() - data.timestamp < CACHE_DURATION) {
+				return data;
+			}
+			return null;
+		} catch (e) { return null; }
+	}
+
+	// 写入缓存
+	function setCache(data) {
+		try {
+			localStorage.setItem(CACHE_KEY, JSON.stringify({
+				data: data,
+				timestamp: Date.now()
+			}));
+		} catch (e) { /* ignore */ }
+	}
+
+	// 主流程
+	function loadWeather(forceRefresh) {
+		showLoading();
+
+		// 尝试从缓存读取
+		if (!forceRefresh) {
+			var cached = getCache();
+			if (cached) {
+				renderAll(cached.data);
+				return;
+			}
+		}
+
+		fetchWeather().then(function (data) {
+			if (data && data.weather) {
+				renderAll(data);
+				setCache(data);
+			} else {
+				showError('获取天气数据失败');
+			}
+		}).catch(function (err) {
+			console.warn('Weather API error:', err);
+			showError('获取失败，点击重试');
+		});
+	}
+
+	// 重试按钮
+	ui.retryBtn.addEventListener('click', function () {
+		loadWeather(true);
+	});
+
+	// 初始化
+	// 延迟执行，避免阻塞首屏
+	if (document.readyState === 'complete') {
+		setTimeout(loadWeather, 500);
+	} else {
+		window.addEventListener('load', function () {
+			setTimeout(loadWeather, 500);
+		}, { once: true });
+	}
+})();
+</script>
+
+<style>
+	.weather-widget {
+		min-height: 140px;
+	}
+	.weather-icon-wrapper {
+		transition: transform 0.3s ease;
+	}
+	.weather-icon-wrapper:hover {
+		transform: scale(1.05);
+	}
+	.weather-detail-item {
+		transition: background-color 0.2s ease;
+	}
+	.weather-detail-item:hover {
+		background-color: rgba(0, 0, 0, 0.04);
+	}
+	.dark .weather-detail-item:hover {
+		background-color: rgba(255, 255, 255, 0.08);
+	}
+	.weather-aqi-badge {
+		line-height: 1;
+		vertical-align: middle;
+	}
+</style>
