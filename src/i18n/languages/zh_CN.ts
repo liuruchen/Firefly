@@ -527,4 +527,14 @@ export const zh_CN: Translation = {
 	[Key.exitImmersiveReading]: "退出沉浸阅读",
 	[Key.tocExpand]: "展开目录",
 	[Key.tocCollapse]: "折叠目录",
+
+	// 天气组件
+	[Key.weatherTitle]: "本地天气",
+	[Key.weatherLoading]: "加载中...",
+	[Key.weatherUnknownLocation]: "未知位置",
+	[Key.weatherFeelsLike]: "体感",
+	[Key.weatherHumidity]: "湿度",
+	[Key.weatherWind]: "风速",
+	[Key.weatherDenied]: "定位权限被拒绝\n点击重试授权",
+	[Key.weatherRetry]: "重试",
 };
