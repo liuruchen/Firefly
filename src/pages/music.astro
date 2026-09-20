@@ -1,0 +1,809 @@
+---
+import { Icon } from "astro-icon/components";
+import { musicPlayerConfig } from "@/config/musicConfig";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import "@/styles/pages/common.css";
+
+const title = i18n(I18nKey.music);
+const description = i18n(I18nKey.musicAudioPlayer);
+
+const config = musicPlayerConfig;
+
+const viewConfigStr = JSON.stringify({
+	showLyrics: config.showLyrics ?? true,
+	i18n: {
+		noPlaying: i18n(I18nKey.musicNoPlaying),
+		lyrics: i18n(I18nKey.musicLyrics),
+		noLyrics: i18n(I18nKey.musicNoLyrics),
+		loadingLyrics: i18n(I18nKey.musicLoadingLyrics),
+		failedLyrics: i18n(I18nKey.musicFailedLyrics),
+		noSongs: i18n(I18nKey.musicNoSongs),
+		error: i18n(I18nKey.musicError),
+		play: i18n(I18nKey.musicPlay),
+		pause: i18n(I18nKey.musicPause),
+		noCover: i18n(I18nKey.musicNoCover),
+		music: i18n(I18nKey.music),
+		playlist: i18n(I18nKey.musicPlaylist),
+		volume: i18n(I18nKey.musicVolume),
+		playMode: i18n(I18nKey.musicPlayMode),
+		prev: i18n(I18nKey.musicPrev),
+		next: i18n(I18nKey.musicNext),
+		progress: i18n(I18nKey.musicProgress),
+	},
+});
+---
+
+<MainGridLayout title={title} description={description}>
+	<div class="music-page-wrapper w-full">
+		<div class="card-base p-6 md:p-8 lg:p-10 relative overflow-hidden">
+
+			<!-- 背景模糊封面 -->
+			<div class="music-bg-blur absolute inset-0 z-0 opacity-20 pointer-events-none transition-opacity duration-700"
+				style="background-size: cover; background-position: center; background-repeat: no-repeat; filter: blur(60px) saturate(1.5); transform: scale(1.2);">
+			</div>
+
+			<div class="relative z-10">
+				<!-- 页面标题 -->
+				<div class="mb-8">
+					<div class="page-heading">
+						<div class="page-icon" aria-hidden="true">
+							<Icon name="material-symbols:music-note-rounded" />
+						</div>
+						<div>
+							<h2>{title}</h2>
+							<p>{description}</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- 主体区域：唱片 + 控制 / 歌词 -->
+				<div class="flex flex-col lg:flex-row gap-8 lg:gap-10">
+
+					<!-- 左侧：唱片和控制器 -->
+					<div class="flex flex-col items-center lg:w-[380px] shrink-0 gap-6">
+						<!-- 旋转唱片 -->
+						<div class="music-disc-wrapper relative w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64">
+							<!-- 唱片外圈光晕 -->
+							<div class="absolute inset-0 rounded-full bg-(--primary)/10 blur-2xl scale-110 transition-opacity duration-500 music-glow opacity-0"></div>
+
+							<!-- 唱片本体 -->
+							<div class="music-disc relative w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-white/80 dark:border-neutral-700/80 bg-(--primary)/5">
+								<!-- 唱片纹理 -->
+								<div class="absolute inset-0 rounded-full pointer-events-none"
+									style="background: repeating-radial-gradient(circle at center, transparent 0, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px);">
+								</div>
+								<!-- 默认音符 -->
+								<div class="absolute inset-0 flex items-center justify-center music-note-placeholder">
+									<Icon name="material-symbols:music-note-rounded" class="text-6xl text-(--primary) opacity-30" />
+								</div>
+								<!-- 封面图片 -->
+								<img class="music-cover-large w-full h-full object-cover opacity-0 transition-opacity duration-500 music-spin" alt="" src="" style="animation-play-state: paused;" />
+								<!-- 中心孔 -->
+								<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/90 dark:bg-neutral-800/90 border-2 border-(--primary)/30 shadow-inner z-20"></div>
+							</div>
+						</div>
+
+						<!-- 歌曲信息 -->
+						<div class="text-center w-full px-2">
+							<h3 class="music-title-large text-xl font-bold text-neutral-800 dark:text-neutral-100 truncate">
+								{i18n(I18nKey.music)}
+							</h3>
+							<p class="music-artist-large text-sm text-neutral-500 dark:text-neutral-400 mt-1 truncate">
+								{i18n(I18nKey.musicNoPlaying)}
+							</p>
+						</div>
+
+						<!-- 进度条 -->
+						<div class="w-full px-2">
+							<div class="music-progress-container relative w-full h-1.5 bg-neutral-300/60 dark:bg-neutral-500/40 rounded-full cursor-pointer touch-none group" role="slider" aria-label={i18n(I18nKey.musicProgress)} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+								<div class="music-progress-bar absolute left-0 top-0 h-full bg-(--primary) rounded-full w-0 transition-[width] duration-100"></div>
+								<div class="music-progress-thumb absolute top-1/2 -mt-2 -ml-2 w-4 h-4 bg-(--primary) ring-2 ring-white dark:ring-neutral-800 rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform duration-200"></div>
+							</div>
+							<div class="flex justify-between mt-2 text-xs font-mono text-neutral-400">
+								<span class="music-current-time">0:00</span>
+								<span class="music-total-time">0:00</span>
+							</div>
+						</div>
+
+						<!-- 控制按钮 -->
+						<div class="flex items-center gap-4 md:gap-6">
+							<button class="music-btn-repeat text-neutral-400 hover:text-(--primary) transition-colors p-2 active:scale-90" title={i18n(I18nKey.musicPlayMode)} aria-label={i18n(I18nKey.musicPlayMode)}>
+								<Icon name="material-symbols:repeat-rounded" class="music-icon-repeat text-2xl" aria-hidden="true" />
+								<Icon name="material-symbols:repeat-one-rounded" class="music-icon-repeat-one text-2xl hidden" aria-hidden="true" />
+								<Icon name="material-symbols:shuffle-rounded" class="music-icon-shuffle text-2xl hidden" aria-hidden="true" />
+							</button>
+							<button class="music-btn-prev text-neutral-600 dark:text-neutral-300 hover:text-(--primary) transition-colors p-2 active:scale-90" title={i18n(I18nKey.musicPrev)} aria-label={i18n(I18nKey.musicPrev)}>
+								<Icon name="material-symbols:skip-previous-rounded" class="text-4xl" aria-hidden="true" />
+							</button>
+							<button class="music-btn-play w-16 h-16 bg-(--btn-regular-bg) hover:bg-(--btn-regular-bg-hover) active:bg-(--btn-regular-bg-active) text-(--primary) rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95" title={i18n(I18nKey.musicPlay)} aria-label={i18n(I18nKey.musicPlay)}>
+								<Icon name="material-symbols:play-arrow-rounded" class="music-icon-play text-4xl ml-1" aria-hidden="true" />
+								<Icon name="material-symbols:pause-rounded" class="music-icon-pause text-4xl hidden" aria-hidden="true" />
+							</button>
+							<button class="music-btn-next text-neutral-600 dark:text-neutral-300 hover:text-(--primary) transition-colors p-2 active:scale-90" title={i18n(I18nKey.musicNext)} aria-label={i18n(I18nKey.musicNext)}>
+								<Icon name="material-symbols:skip-next-rounded" class="text-4xl" aria-hidden="true" />
+							</button>
+							<!-- 音量 -->
+							<div class="flex items-center gap-1.5 group/vol">
+								<button class="music-btn-mute text-neutral-400 hover:text-(--primary) transition-colors p-2 active:scale-90" title={i18n(I18nKey.musicVolume)} aria-label={i18n(I18nKey.musicVolume)}>
+									<Icon name="material-symbols:volume-up-rounded" class="music-icon-vol-high text-2xl" aria-hidden="true" />
+									<Icon name="material-symbols:volume-off-rounded" class="music-icon-vol-mute text-2xl hidden" aria-hidden="true" />
+								</button>
+								<div class="music-vol-container h-1.5 w-0 group-hover/vol:w-20 bg-neutral-300/60 dark:bg-neutral-500/40 rounded-full cursor-pointer relative transition-all duration-300 overflow-hidden" role="slider" aria-label={i18n(I18nKey.musicVolume)} aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+									<div class="music-vol-bar absolute left-0 top-0 h-full bg-(--primary) rounded-full" style="width: 70%"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 右侧：歌词 + 播放列表 -->
+					<div class="flex-1 flex flex-col min-h-0">
+
+						<!-- 切换标签 -->
+						<div class="flex items-center gap-2 mb-4 border-b border-neutral-200/60 dark:border-white/5 pb-3">
+							<button class="music-tab-lrc flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-300 bg-(--primary)/10 text-(--primary)" data-active="true">
+								<Icon name="material-symbols:subtitles-outline-rounded" class="text-lg" />
+								{i18n(I18nKey.musicLyrics)}
+							</button>
+							<button class="music-tab-list flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium text-neutral-400 hover:text-(--primary) transition-all duration-300" data-active="false">
+								<Icon name="material-symbols:queue-music-rounded" class="text-lg" />
+								{i18n(I18nKey.musicPlaylist)}
+							</button>
+							<!-- 歌词开关 -->
+							{config.showLyrics && (
+								<button class="music-btn-lrc-toggle ml-auto p-1.5 rounded-full text-neutral-400 hover:text-(--primary) transition-colors" title={i18n(I18nKey.musicLyrics)} aria-label={i18n(I18nKey.musicLyrics)}>
+									<Icon name="material-symbols:subtitles-off-outline-rounded" class="music-icon-lrc-off text-lg" />
+									<Icon name="material-symbols:subtitles-outline-rounded" class="music-icon-lrc-on text-lg hidden" />
+								</button>
+							)}
+						</div>
+
+						<!-- 歌词面板 -->
+						<div class="music-lrc-panel flex-1 min-h-0">
+							<div class="music-lrc-container h-64 md:h-72 lg:h-80 overflow-y-auto custom-scrollbar flex flex-col items-center gap-1 p-4 text-center relative scroll-smooth" role="listbox" aria-label={i18n(I18nKey.musicLyrics)}>
+								<div class="text-neutral-400 text-sm py-10" role="option">{i18n(I18nKey.musicNoLyrics)}</div>
+							</div>
+						</div>
+
+						<!-- 播放列表面板 -->
+						<div class="music-list-panel hidden flex-1 min-h-0">
+							<div class="music-playlist-container h-64 md:h-72 lg:h-80 overflow-y-auto custom-scrollbar pr-1" role="listbox" aria-label={i18n(I18nKey.musicPlaylist)}>
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+
+			<!-- 加载遮罩 -->
+			<div class="music-loading absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none rounded-(--radius-large)">
+				<div class="w-10 h-10 text-(--primary) animate-spin">
+					<Icon name="material-symbols:sync-rounded" class="text-3xl" />
+				</div>
+			</div>
+		</div>
+	</div>
+</MainGridLayout>
+
+<!-- 播放列表条目模板 -->
+<template id="music-page-item-template">
+	<div class="music-playlist-item flex items-center gap-3 p-2.5 rounded-xl cursor-pointer hover:bg-neutral-100/80 dark:hover:bg-white/5 transition-colors group">
+		<div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 relative bg-neutral-200 dark:bg-neutral-700">
+			<img src="" class="item-cover w-full h-full object-cover" loading="lazy" alt="" />
+			<div class="item-active-overlay absolute inset-0 bg-(--primary)/25 hidden items-center justify-center backdrop-blur-[1px]">
+				<div class="eq-bars flex items-end gap-[2px] h-4">
+					<span class="eq-bar w-[3px] bg-white rounded-sm"></span>
+					<span class="eq-bar w-[3px] bg-white rounded-sm"></span>
+					<span class="eq-bar w-[3px] bg-white rounded-sm"></span>
+				</div>
+				<svg class="eq-play-icon text-white hidden" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+			</div>
+		</div>
+		<div class="flex-1 min-w-0">
+			<div class="item-title text-sm font-bold text-neutral-700 dark:text-neutral-200 truncate group-hover:text-(--primary) transition-colors"></div>
+			<div class="item-artist text-xs text-neutral-400 truncate"></div>
+		</div>
+	</div>
+</template>
+
+<!-- 确保 MusicManager 已加载 -->
+<script is:inline>
+	(function () {
+		if (window.__fireflyMusic) return;
+		// 如果 manager 还未加载，等待 DOMContentLoaded 后重试
+		function check() {
+			if (window.__fireflyMusic) return;
+			if (document.readyState === 'complete' || document.readyState === 'interactive') {
+				// manager 脚本可能在 layout 中以 is:inline 加载，此处仅做兜底
+			}
+		}
+		check();
+	})();
+</script>
+
+<!-- 音乐页面交互脚本 -->
+<script define:vars={{ viewConfigStr }} is:inline>
+(function () {
+	var cfg = JSON.parse(viewConfigStr);
+	var mgr = window.__fireflyMusic;
+	if (!mgr) return;
+
+	var initScheduled = false;
+	function scheduleInit() {
+		if (initScheduled) return;
+		initScheduled = true;
+		var fired = false;
+		function go() {
+			if (fired) return;
+			fired = true;
+			document.removeEventListener('pointerdown', go, true);
+			document.removeEventListener('keydown', go, true);
+			mgr.init();
+		}
+		document.addEventListener('pointerdown', go, true);
+		document.addEventListener('keydown', go, true);
+		function afterLoad() {
+			if (window.requestIdleCallback) window.requestIdleCallback(go, { timeout: 2000 });
+			else setTimeout(go, 800);
+		}
+		if (document.readyState === 'complete') afterLoad();
+		else window.addEventListener('load', afterLoad, { once: true });
+	}
+
+	// ── UI 元素引用 ──────────────────────────────────────
+	var root = document.querySelector('.music-page-wrapper');
+	if (!root) return;
+
+	var ui = {
+		loading: root.querySelector('.music-loading'),
+		cover: root.querySelector('.music-cover-large'),
+		notePlaceholder: root.querySelector('.music-note-placeholder'),
+		title: root.querySelector('.music-title-large'),
+		artist: root.querySelector('.music-artist-large'),
+		progressBar: root.querySelector('.music-progress-bar'),
+		progressThumb: root.querySelector('.music-progress-thumb'),
+		progressContainer: root.querySelector('.music-progress-container'),
+		currentTime: root.querySelector('.music-current-time'),
+		totalTime: root.querySelector('.music-total-time'),
+		btnPlay: root.querySelector('.music-btn-play'),
+		iconPlay: root.querySelector('.music-icon-play'),
+		iconPause: root.querySelector('.music-icon-pause'),
+		btnPrev: root.querySelector('.music-btn-prev'),
+		btnNext: root.querySelector('.music-btn-next'),
+		btnRepeat: root.querySelector('.music-btn-repeat'),
+		iconRepeat: root.querySelector('.music-icon-repeat'),
+		iconRepeatOne: root.querySelector('.music-icon-repeat-one'),
+		iconShuffle: root.querySelector('.music-icon-shuffle'),
+		btnMute: root.querySelector('.music-btn-mute'),
+		iconVolHigh: root.querySelector('.music-icon-vol-high'),
+		iconVolMute: root.querySelector('.music-icon-vol-mute'),
+		volContainer: root.querySelector('.music-vol-container'),
+		volBar: root.querySelector('.music-vol-bar'),
+		btnLrc: root.querySelector('.music-btn-lrc-toggle'),
+		iconLrcOn: root.querySelector('.music-icon-lrc-on'),
+		iconLrcOff: root.querySelector('.music-icon-lrc-off'),
+		lrcContainer: root.querySelector('.music-lrc-container'),
+		lrcPanel: root.querySelector('.music-lrc-panel'),
+		listPanel: root.querySelector('.music-list-panel'),
+		playlistContainer: root.querySelector('.music-playlist-container'),
+		tabLrc: root.querySelector('.music-tab-lrc'),
+		tabList: root.querySelector('.music-tab-list'),
+		bgBlur: root.querySelector('.music-bg-blur'),
+		glow: root.querySelector('.music-glow'),
+		itemTemplate: document.getElementById('music-page-item-template')
+	};
+
+	// 验证关键元素
+	var _critical = [ui.btnPlay, ui.btnRepeat, ui.progressContainer, ui.btnNext, ui.btnPrev,
+		ui.cover, ui.title, ui.artist, ui.lrcContainer, ui.playlistContainer, ui.itemTemplate];
+	if (_critical.some(function (el) { return !el; })) return;
+
+	// ── 本地状态 ──────────────────────────────────────────
+	var local = {
+		isUserScrolling: false,
+		scrollTimeout: null,
+		currentLrcIndex: -1
+	};
+
+	// ── UI 更新函数 ──────────────────────────────────────
+	function setLoading(bool) {
+		if (bool) {
+			ui.loading.classList.remove('opacity-0', 'pointer-events-none');
+		} else {
+			ui.loading.classList.add('opacity-0', 'pointer-events-none');
+		}
+	}
+
+	function updatePlayStateUI(isPlaying) {
+		if (isPlaying) {
+			ui.btnPlay.classList.add('bg-(--primary)', 'text-white', 'hover:brightness-110');
+			ui.btnPlay.classList.remove('bg-(--btn-regular-bg)', 'hover:bg-(--btn-regular-bg-hover)', 'active:bg-(--btn-regular-bg-active)', 'text-(--primary)');
+			ui.iconPlay.classList.add('hidden');
+			ui.iconPause.classList.remove('hidden');
+			ui.cover.style.animationPlayState = 'running';
+			ui.glow.classList.remove('opacity-0');
+			ui.btnPlay.setAttribute('aria-label', cfg.i18n.pause);
+		} else {
+			ui.btnPlay.classList.remove('bg-(--primary)', 'text-white', 'hover:brightness-110');
+			ui.btnPlay.classList.add('bg-(--btn-regular-bg)', 'hover:bg-(--btn-regular-bg-hover)', 'active:bg-(--btn-regular-bg-active)', 'text-(--primary)');
+			ui.iconPlay.classList.remove('hidden');
+			ui.iconPause.classList.add('hidden');
+			ui.cover.style.animationPlayState = 'paused';
+			ui.glow.classList.add('opacity-0');
+			ui.btnPlay.setAttribute('aria-label', cfg.i18n.play);
+		}
+		// 更新播放列表中的动画指示器
+		var activeItems = ui.playlistContainer.querySelectorAll('.music-playlist-item[aria-current="true"]');
+		activeItems.forEach(function (item) {
+			var eqBars = item.querySelector('.eq-bars');
+			var playIcon = item.querySelector('.eq-play-icon');
+			if (isPlaying) {
+				eqBars.classList.remove('hidden');
+				eqBars.classList.add('flex');
+				playIcon.classList.add('hidden');
+			} else {
+				eqBars.classList.add('hidden');
+				eqBars.classList.remove('flex');
+				playIcon.classList.remove('hidden');
+			}
+		});
+	}
+
+	function updateModeUI(playMode) {
+		var primaryColor = 'text-(--primary)';
+		if (playMode === 0) {
+			ui.btnRepeat.className = 'music-btn-repeat text-neutral-400 hover:text-(--primary) transition-colors p-2 active:scale-90';
+			ui.iconRepeat.classList.remove('hidden');
+			ui.iconRepeatOne.classList.add('hidden');
+			ui.iconShuffle.classList.add('hidden');
+		} else if (playMode === 1) {
+			ui.btnRepeat.className = 'music-btn-repeat ' + primaryColor + ' transition-colors p-2 active:scale-90';
+			ui.iconRepeat.classList.add('hidden');
+			ui.iconRepeatOne.classList.remove('hidden');
+			ui.iconShuffle.classList.add('hidden');
+		} else {
+			ui.btnRepeat.className = 'music-btn-repeat ' + primaryColor + ' transition-colors p-2 active:scale-90';
+			ui.iconRepeat.classList.add('hidden');
+			ui.iconRepeatOne.classList.add('hidden');
+			ui.iconShuffle.classList.remove('hidden');
+		}
+	}
+
+	function updateVolumeUI(volume, isMuted) {
+		var pct = isMuted ? 0 : volume * 100;
+		ui.volBar.style.width = pct + '%';
+		ui.volContainer.setAttribute('aria-valuenow', Math.round(pct).toString());
+		if (isMuted || volume === 0) {
+			ui.iconVolHigh.classList.add('hidden');
+			ui.iconVolMute.classList.remove('hidden');
+		} else {
+			ui.iconVolHigh.classList.remove('hidden');
+			ui.iconVolMute.classList.add('hidden');
+		}
+	}
+
+	function updateTrackUI(track) {
+		if (!track) return;
+		ui.title.innerText = track.name;
+		ui.title.title = track.name;
+		ui.artist.innerText = track.artist;
+		ui.artist.title = track.artist;
+
+		if (track.pic) {
+			ui.cover.classList.add('opacity-0');
+			ui.cover.src = track.pic;
+			ui.cover.alt = track.name + ' - ' + track.artist;
+			// 更新背景模糊封面
+			ui.bgBlur.style.backgroundImage = 'url("' + track.pic + '")';
+			if (ui.notePlaceholder) ui.notePlaceholder.style.display = 'none';
+		} else {
+			ui.cover.src = '';
+			ui.cover.classList.add('opacity-0');
+			ui.cover.alt = cfg.i18n.noCover;
+			ui.bgBlur.style.backgroundImage = '';
+			if (ui.notePlaceholder) ui.notePlaceholder.style.display = '';
+		}
+
+		// 重置旋转动画
+		ui.cover.classList.remove('music-spin');
+		void ui.cover.offsetWidth;
+		ui.cover.classList.add('music-spin');
+		ui.cover.style.animationPlayState = 'paused';
+
+		// 重置进度
+		ui.progressBar.style.width = '0%';
+		ui.progressThumb.style.left = '0%';
+		ui.progressContainer.setAttribute('aria-valuenow', '0');
+		ui.currentTime.innerText = '0:00';
+		ui.totalTime.innerText = '0:00';
+	}
+
+	function renderPlaylist(playlist, currentIndex) {
+		ui.playlistContainer.innerHTML = '';
+		var frag = document.createDocumentFragment();
+		playlist.forEach(function (track, idx) {
+			var clone = ui.itemTemplate.content.cloneNode(true);
+			var itemEl = clone.querySelector('.music-playlist-item');
+			var img = clone.querySelector('.item-cover');
+			var title = clone.querySelector('.item-title');
+			var artist = clone.querySelector('.item-artist');
+
+			img.src = track.pic || '';
+			img.alt = track.name + ' - ' + track.artist;
+			title.innerText = track.name;
+			artist.innerText = track.artist;
+
+			itemEl.dataset.index = idx;
+			itemEl.setAttribute('role', 'option');
+			itemEl.setAttribute('aria-label', track.name + ' - ' + track.artist);
+			itemEl.onclick = function () { mgr.playTrackByIndex(idx); };
+
+			if (idx === currentIndex) {
+				itemEl.classList.add('bg-neutral-100', 'dark:bg-white/10');
+				itemEl.setAttribute('aria-current', 'true');
+				var overlay = itemEl.querySelector('.item-active-overlay');
+				overlay.classList.remove('hidden');
+				overlay.classList.add('flex');
+				var s = mgr.getState();
+				if (s.isPlaying) {
+					itemEl.querySelector('.eq-bars').classList.remove('hidden');
+					itemEl.querySelector('.eq-bars').classList.add('flex');
+					itemEl.querySelector('.eq-play-icon').classList.add('hidden');
+				} else {
+					itemEl.querySelector('.eq-bars').classList.add('hidden');
+					itemEl.querySelector('.eq-bars').classList.remove('flex');
+					itemEl.querySelector('.eq-play-icon').classList.remove('hidden');
+				}
+			}
+
+			frag.appendChild(clone);
+		});
+		ui.playlistContainer.appendChild(frag);
+	}
+
+	function updatePlaylistActiveUI(currentIndex) {
+		var items = ui.playlistContainer.querySelectorAll('.music-playlist-item');
+		var oldItem = ui.playlistContainer.querySelector('.music-playlist-item[aria-current="true"]');
+		if (oldItem) {
+			oldItem.classList.remove('bg-neutral-100', 'dark:bg-white/10');
+			oldItem.removeAttribute('aria-current');
+			var oldOverlay = oldItem.querySelector('.item-active-overlay');
+			oldOverlay.classList.add('hidden');
+			oldOverlay.classList.remove('flex');
+		}
+		if (currentIndex >= 0 && items[currentIndex]) {
+			var item = items[currentIndex];
+			item.classList.add('bg-neutral-100', 'dark:bg-white/10');
+			item.setAttribute('aria-current', 'true');
+			var overlay = item.querySelector('.item-active-overlay');
+			overlay.classList.remove('hidden');
+			overlay.classList.add('flex');
+			var isPlaying = mgr.getState().isPlaying;
+			if (isPlaying) {
+				item.querySelector('.eq-bars').classList.remove('hidden');
+				item.querySelector('.eq-bars').classList.add('flex');
+				item.querySelector('.eq-play-icon').classList.add('hidden');
+			} else {
+				item.querySelector('.eq-bars').classList.add('hidden');
+				item.querySelector('.eq-bars').classList.remove('flex');
+				item.querySelector('.eq-play-icon').classList.remove('hidden');
+			}
+			// 滚动到当前曲目
+			item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		}
+	}
+
+	function renderLyricsUI(lyrics, status) {
+		local.currentLrcIndex = -1;
+		ui.lrcContainer.innerHTML = '';
+		if (status === 'loading') {
+			ui.lrcContainer.innerHTML = '<div class="text-neutral-400 text-sm py-10">' + cfg.i18n.loadingLyrics + '</div>';
+			return;
+		}
+		if (status === 'failed') {
+			ui.lrcContainer.innerHTML = '<div class="text-neutral-400 text-sm py-10">' + cfg.i18n.failedLyrics + '</div>';
+			return;
+		}
+		if (!lyrics || lyrics.length === 0) {
+			ui.lrcContainer.innerHTML = '<div class="text-neutral-400 text-sm py-10" role="option">' + cfg.i18n.noLyrics + '</div>';
+			return;
+		}
+		lyrics.forEach(function (line, index) {
+			var lineEl = document.createElement('div');
+			lineEl.className = 'lrc-line transition-all duration-300 text-sm text-neutral-400 py-1.5 cursor-pointer hover:text-(--primary)';
+			lineEl.innerText = line.text;
+			lineEl.dataset.index = index;
+			lineEl.setAttribute('role', 'option');
+			lineEl.setAttribute('aria-label', line.text);
+			lineEl.onclick = function () { mgr.seekToTime(line.time); };
+			ui.lrcContainer.appendChild(lineEl);
+		});
+	}
+
+	function updateLrcHighlight(index) {
+		if (index === local.currentLrcIndex) return;
+		local.currentLrcIndex = index;
+		var lines = ui.lrcContainer.querySelectorAll('.lrc-line');
+		lines.forEach(function (line, i) {
+			if (i === index) {
+				line.classList.add('text-(--primary)', 'font-bold', 'text-base', 'scale-105');
+				line.classList.remove('text-neutral-400', 'text-sm');
+			} else {
+				line.classList.remove('text-(--primary)', 'font-bold', 'text-base', 'scale-105');
+				line.classList.add('text-neutral-400', 'text-sm');
+			}
+		});
+		if (index !== -1 && !local.isUserScrolling) {
+			var line = ui.lrcContainer.querySelector('.lrc-line[data-index="' + index + '"]');
+			if (line) {
+				var containerHeight = ui.lrcContainer.clientHeight;
+				var lineOffset = line.offsetTop;
+				var lineHeight = line.offsetHeight;
+				var targetScroll = lineOffset - (containerHeight / 2) + (lineHeight / 2);
+				ui.lrcContainer.scrollTo({ top: targetScroll, behavior: 'smooth' });
+			}
+		}
+	}
+
+	function syncAll() {
+		var s = mgr.getState();
+		if (!s.initialized) return;
+		setLoading(false);
+		if (s.playlist.length === 0) {
+			ui.title.innerText = s.error || cfg.i18n.noSongs;
+			return;
+		}
+		renderPlaylist(s.playlist, s.currentIndex);
+		if (s.track) updateTrackUI(s.track);
+		updatePlayStateUI(s.isPlaying);
+		updateModeUI(s.playMode);
+		updateVolumeUI(s.volume, s.isMuted);
+		if (s.duration > 0) {
+			ui.progressBar.style.width = s.progress + '%';
+			ui.progressThumb.style.left = s.progress + '%';
+			ui.progressContainer.setAttribute('aria-valuenow', Math.round(s.progress).toString());
+			ui.currentTime.innerText = s.currentTimeStr;
+			ui.totalTime.innerText = s.durationStr;
+		}
+		renderLyricsUI(s.lyrics, s.lyrics.length > 0 ? 'loaded' : 'none');
+		if (s.currentLrcIndex >= 0) updateLrcHighlight(s.currentLrcIndex);
+		if (s.track && s.track.pic && ui.cover.src && ui.cover.complete && ui.cover.naturalWidth > 0) {
+			ui.cover.classList.remove('opacity-0');
+		}
+		ui.cover.style.animationPlayState = s.isPlaying ? 'running' : 'paused';
+	}
+
+	// ── 事件监听 ──────────────────────────────────────────
+	var handlers = {};
+	function on(name, fn) {
+		handlers[name] = fn;
+		window.addEventListener(name, fn);
+	}
+
+	on('fm:init', function (e) {
+		var d = e.detail;
+		setLoading(false);
+		if (d.playlist.length > 0) {
+			renderPlaylist(d.playlist, 0);
+			updateModeUI(d.playMode);
+			updateVolumeUI(d.volume, d.isMuted);
+		} else {
+			ui.title.innerText = cfg.i18n.noSongs;
+		}
+	});
+
+	on('fm:track', function (e) {
+		var d = e.detail;
+		updateTrackUI(d.track);
+		updatePlaylistActiveUI(d.index);
+	});
+
+	on('fm:play-state', function (e) {
+		updatePlayStateUI(e.detail.isPlaying);
+	});
+
+	on('fm:time', function (e) {
+		var d = e.detail;
+		ui.progressBar.style.width = d.progress + '%';
+		ui.progressThumb.style.left = d.progress + '%';
+		ui.progressContainer.setAttribute('aria-valuenow', Math.round(d.progress).toString());
+		ui.currentTime.innerText = d.currentTimeStr;
+		ui.totalTime.innerText = d.durationStr;
+	});
+
+	on('fm:volume', function (e) {
+		updateVolumeUI(e.detail.volume, e.detail.isMuted);
+	});
+
+	on('fm:mode', function (e) {
+		updateModeUI(e.detail.playMode);
+	});
+
+	on('fm:lyrics', function (e) {
+		renderLyricsUI(e.detail.lyrics, e.detail.status);
+	});
+
+	on('fm:lrc-index', function (e) {
+		updateLrcHighlight(e.detail.index);
+	});
+
+	on('fm:error', function (e) {
+		ui.title.innerText = e.detail.message || cfg.i18n.error;
+	});
+
+	// ── 按钮事件 ──────────────────────────────────────────
+	ui.btnPlay.addEventListener('click', function () { mgr.togglePlay(); });
+	ui.btnNext.addEventListener('click', function () { mgr.playNext(); });
+	ui.btnPrev.addEventListener('click', function () { mgr.playPrev(); });
+	ui.btnRepeat.addEventListener('click', function () { mgr.cyclePlayMode(); });
+	ui.btnMute.addEventListener('click', function () { mgr.toggleMute(); });
+
+	ui.volContainer.addEventListener('click', function (e) {
+		var rect = ui.volContainer.getBoundingClientRect();
+		var x = e.clientX - rect.left;
+		var val = Math.max(0, Math.min(1, x / rect.width));
+		mgr.setVolume(val);
+	});
+
+	ui.progressContainer.addEventListener('click', function (e) {
+		var rect = ui.progressContainer.getBoundingClientRect();
+		var clickX = e.clientX - rect.left;
+		var percent = Math.min(Math.max(clickX / rect.width, 0), 1);
+		mgr.seek(percent);
+	});
+
+	// ── 面板切换 ──────────────────────────────────────────
+	if (ui.btnLrc) {
+		ui.btnLrc.addEventListener('click', function () {
+			var isOff = ui.iconLrcOff.classList.contains('hidden') === false;
+			if (isOff) {
+				// 当前关闭状态 → 开启
+				ui.iconLrcOff.classList.add('hidden');
+				ui.iconLrcOn.classList.remove('hidden');
+				ui.btnLrc.classList.add('text-(--primary)');
+				ui.lrcPanel.classList.remove('hidden');
+				ui.lrcPanel.classList.add('flex');
+				ui.listPanel.classList.add('hidden');
+				ui.listPanel.classList.remove('flex');
+				ui.tabLrc.dataset.active = 'true';
+				ui.tabList.dataset.active = 'false';
+				ui.tabLrc.classList.add('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+				ui.tabLrc.classList.remove('text-neutral-400', 'font-medium');
+				ui.tabList.classList.remove('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+				ui.tabList.classList.add('text-neutral-400', 'font-medium');
+			} else {
+				// 当前开启状态 → 关闭
+				ui.iconLrcOff.classList.remove('hidden');
+				ui.iconLrcOn.classList.add('hidden');
+				ui.btnLrc.classList.remove('text-(--primary)');
+			}
+		});
+	}
+
+	ui.tabLrc.addEventListener('click', function () {
+		ui.lrcPanel.classList.remove('hidden');
+		ui.lrcPanel.classList.add('flex');
+		ui.listPanel.classList.add('hidden');
+		ui.listPanel.classList.remove('flex');
+		ui.tabLrc.dataset.active = 'true';
+		ui.tabList.dataset.active = 'false';
+		ui.tabLrc.classList.add('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+		ui.tabLrc.classList.remove('text-neutral-400', 'font-medium');
+		ui.tabList.classList.remove('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+		ui.tabList.classList.add('text-neutral-400', 'font-medium');
+	});
+
+	ui.tabList.addEventListener('click', function () {
+		ui.listPanel.classList.remove('hidden');
+		ui.listPanel.classList.add('flex');
+		ui.lrcPanel.classList.add('hidden');
+		ui.lrcPanel.classList.remove('flex');
+		ui.tabList.dataset.active = 'true';
+		ui.tabLrc.dataset.active = 'false';
+		ui.tabList.classList.add('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+		ui.tabList.classList.remove('text-neutral-400', 'font-medium');
+		ui.tabLrc.classList.remove('bg-(--primary)/10', 'text-(--primary)', 'font-bold');
+		ui.tabLrc.classList.add('text-neutral-400', 'font-medium');
+	});
+
+	// ── 歌词滚动检测 ──────────────────────────────────────
+	function resetScrollTimeout() {
+		clearTimeout(local.scrollTimeout);
+		local.scrollTimeout = setTimeout(function () {
+			local.isUserScrolling = false;
+			var s = mgr.getState();
+			if (s.currentLrcIndex >= 0) {
+				var line = ui.lrcContainer.querySelector('.lrc-line[data-index="' + s.currentLrcIndex + '"]');
+				if (line) {
+					var containerHeight = ui.lrcContainer.clientHeight;
+					var lineOffset = line.offsetTop;
+					var lineHeight = line.offsetHeight;
+					var targetScroll = lineOffset - (containerHeight / 2) + (lineHeight / 2);
+					ui.lrcContainer.scrollTo({ top: targetScroll, behavior: 'auto' });
+				}
+			}
+		}, 3000);
+	}
+
+	ui.lrcContainer.addEventListener('wheel', function () {
+		local.isUserScrolling = true;
+		resetScrollTimeout();
+	});
+	ui.lrcContainer.addEventListener('touchstart', function () {
+		local.isUserScrolling = true;
+		resetScrollTimeout();
+	});
+
+	// ── 封面图片事件 ──────────────────────────────────────
+	ui.cover.addEventListener('load', function () {
+		ui.cover.classList.remove('opacity-0');
+	});
+	ui.cover.addEventListener('error', function () {
+		ui.cover.classList.add('opacity-0');
+	});
+
+	// ── 清理 ──────────────────────────────────────────────
+	var observer = new MutationObserver(function (mutations) {
+		for (var i = 0; i < mutations.length; i++) {
+			var removed = mutations[i].removedNodes;
+			for (var j = 0; j < removed.length; j++) {
+				if (removed[j] === root || (removed[j].contains && removed[j].contains(root))) {
+					Object.keys(handlers).forEach(function (name) {
+						window.removeEventListener(name, handlers[name]);
+					});
+					observer.disconnect();
+					clearTimeout(local.scrollTimeout);
+					return;
+				}
+			}
+		}
+	});
+	if (root.parentNode) {
+		observer.observe(root.parentNode, { childList: true });
+	}
+
+	// ── 初始化 ──────────────────────────────────────────────
+	var currentState = mgr.getState();
+	if (currentState.initialized) {
+		syncAll();
+	} else {
+		setLoading(true);
+		scheduleInit();
+	}
+})();
+</script>
+
+<style>
+	@keyframes music-spin {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
+	}
+	.music-spin {
+		animation: music-spin 15s linear infinite;
+	}
+
+	/* 均衡器条动画 */
+	.eq-bars .eq-bar {
+		animation: eq-bounce 1.2s ease-in-out infinite;
+	}
+	.eq-bars .eq-bar:nth-child(1) { animation-duration: 0.8s; }
+	.eq-bars .eq-bar:nth-child(2) { animation-duration: 0.6s; animation-delay: 0.15s; }
+	.eq-bars .eq-bar:nth-child(3) { animation-duration: 1.0s; animation-delay: 0.3s; }
+
+	@keyframes eq-bounce {
+		0%, 100% { height: 4px; }
+		50%      { height: 16px; }
+	}
+
+	/* 歌词行过渡 */
+	.lrc-line {
+		transform-origin: center;
+		transition: all 0.3s ease;
+	}
+
+	/* 播放列表项的激活状态标题颜色 */
+	.music-playlist-item[aria-current="true"] .item-title {
+		color: var(--primary);
+	}
+</style>
