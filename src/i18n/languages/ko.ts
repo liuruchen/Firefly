@@ -537,4 +537,14 @@ export const ko: Translation = {
 	[Key.exitImmersiveReading]: "몰입형 읽기 종료",
 	[Key.tocExpand]: "목차 펼치기",
 	[Key.tocCollapse]: "목차 접기",
+
+	// 날씨 위젯
+	[Key.weatherTitle]: "현지 날씨",
+	[Key.weatherLoading]: "로딩 중...",
+	[Key.weatherUnknownLocation]: "알 수 없는 위치",
+	[Key.weatherFeelsLike]: "체감",
+	[Key.weatherHumidity]: "습도",
+	[Key.weatherWind]: "풍속",
+	[Key.weatherDenied]: "위치 권한 거부됨\n클릭하여 재시도",
+	[Key.weatherRetry]: "재시도",
 };
