@@ -541,4 +541,14 @@ export const ru: Translation = {
 	[Key.exitImmersiveReading]: "Выйти из режима чтения",
 	[Key.tocExpand]: "Развернуть оглавление",
 	[Key.tocCollapse]: "Свернуть оглавление",
+
+	// Погода
+	[Key.weatherTitle]: "Местная погода",
+	[Key.weatherLoading]: "Загрузка...",
+	[Key.weatherUnknownLocation]: "Неизвестное местоположение",
+	[Key.weatherFeelsLike]: "Ощущается",
+	[Key.weatherHumidity]: "Влажность",
+	[Key.weatherWind]: "Ветер",
+	[Key.weatherDenied]: "Геолокация отклонена\nНажмите для повтора",
+	[Key.weatherRetry]: "Повторить",
 };
