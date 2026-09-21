@@ -5,7 +5,7 @@ updated: 2026-09-21
 draft: false
 description: Legacy+ 项目将其定位为一条与 MC 实际发展历史不同的平行发展路线。Legacy+ 是由 Yoniko 主导的 MC
   历史版本改造项目集合，早期主要包含 Classic+、Indev+ 与 Minecraft Infinite(indfev+)。
-image: /images/DM_20260921215426_001.avif
+image: /images/远古版本模组三部曲：Legacy+【Paladin_Ryan】_-_bibz.me_-_cover.jpg
 tags:
   - Markdown
   - 教程
@@ -20,7 +20,7 @@ comment: true
 
 正是为了唤醒这段被时间尘封的记忆，**Legacy+** 应运而生。这不仅仅是一组模组，更是一次对 Minecraft 起源的深度致敬与重新想象。由开发者 Yoniko 领衔的 Legacy+ 团队，通过一系列精心设计的模组，为那些早已停止更新的历史版本注入了新的生命力，让玩家得以在一个既熟悉又陌生的世界中，重新体验方块世界的初心。
 
-
+<iframe width="100%" height="468" src="//player.bilibili.com/player.html?bvid=BV1MhXYYjEZQ&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 
 ## 平行宇宙：如果 Notch 走了另一条路
 
