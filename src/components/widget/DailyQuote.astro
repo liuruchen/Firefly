@@ -1,0 +1,263 @@
+---
+import { Icon } from "astro-icon/components";
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { WidgetComponentConfig } from "@/types/config";
+
+interface Props {
+	class?: string;
+	style?: string;
+	widgetConfig?: WidgetComponentConfig;
+}
+const { class: className, style, widgetConfig } = Astro.props;
+
+const showTitle = widgetConfig?.showTitle !== false;
+---
+
+<WidgetLayout
+	name={i18n(I18nKey.dailyQuoteTitle)}
+	showTitle={showTitle}
+	id="daily-quote-widget"
+	class={className}
+	style={style}
+>
+	<div class="daily-quote-widget relative">
+		<!-- 一言内容 -->
+		<div class="daily-quote-content relative">
+			<Icon
+				name="material-symbols:format-quote-rounded"
+				class="quote-icon quote-icon-open absolute -top-1 -left-1 text-2xl md:text-3xl text-(--primary)/20"
+			/>
+			<p class="daily-quote-text text-neutral-700 dark:text-neutral-300 leading-relaxed text-xs md:text-sm pl-4 md:pl-5 pr-2 py-2 min-h-[2.5rem] md:min-h-[3rem]">
+				{i18n(I18nKey.dailyQuoteLoading)}
+			</p>
+			<Icon
+				name="material-symbols:format-quote-rounded"
+				class="quote-icon quote-icon-close absolute -bottom-1 -right-1 text-2xl md:text-3xl text-(--primary)/20 rotate-180"
+			/>
+		</div>
+
+		<!-- 来源和作者 -->
+		<div class="daily-quote-source mt-2 md:mt-3 flex items-center justify-between text-[11px] md:text-xs text-neutral-400 dark:text-neutral-500">
+			<span class="daily-quote-author truncate max-w-[65%] md:max-w-[60%]">—</span>
+			<button
+				class="daily-quote-refresh flex items-center gap-1 hover:text-(--primary) transition-colors active:scale-95 touch-manipulation"
+				aria-label={i18n(I18nKey.dailyQuoteRefresh)}
+				title={i18n(I18nKey.dailyQuoteRefresh)}
+			>
+				<Icon name="material-symbols:refresh-rounded" class="text-sm md:text-base" />
+			</button>
+		</div>
+
+		<!-- 加载中遮罩 -->
+		<div class="daily-quote-loading hidden absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm rounded-lg">
+			<div class="w-4 h-4 md:w-5 md:h-5 text-(--primary) animate-spin">
+				<Icon name="material-symbols:sync-rounded" class="text-lg md:text-xl" />
+			</div>
+		</div>
+	</div>
+</WidgetLayout>
+
+<script is:inline>
+(function () {
+	var CACHE_KEY = 'firefly-daily-quote-cache';
+	var CACHE_DURATION = 60 * 60 * 1000; // 1 小时
+
+	// 缓存共享数据，避免重复请求
+	var sharedData = null;
+	var pendingPromise = null;
+
+	function showLoading(ui) {
+		ui.loading.classList.remove('hidden');
+	}
+
+	function hideLoading(ui) {
+		ui.loading.classList.add('hidden');
+	}
+
+	function renderQuote(ui, data) {
+		hideLoading(ui);
+		ui.text.innerText = data.hitokoto || data.content || '...';
+		var from = data.from || '';
+		var fromWho = data.from_who || data.author || '';
+		var source = '';
+		if (fromWho && from) {
+			source = '《' + from + '》' + fromWho;
+		} else if (from) {
+			source = '《' + from + '》';
+		} else if (fromWho) {
+			source = fromWho;
+		}
+		ui.author.innerText = source ? '— ' + source : '—';
+	}
+
+	function fetchQuote() {
+		if (pendingPromise) return pendingPromise;
+
+		// hitokoto.cn 一言 API
+		var url = 'https://v1.hitokoto.cn/?c=a&c=b&c=c&c=d&c=i&c=k';
+		pendingPromise = fetch(url, {
+			method: 'GET',
+			credentials: 'omit'
+		}).then(function (r) {
+			if (!r.ok) throw new Error('HTTP ' + r.status);
+			return r.json();
+		}).then(function (data) {
+			if (data && (data.hitokoto || data.content)) {
+				sharedData = data;
+				setCache(data);
+				return data;
+			}
+			throw new Error('invalid data');
+		}).finally(function () {
+			pendingPromise = null;
+		});
+
+		return pendingPromise;
+	}
+
+	function getCache() {
+		try {
+			var raw = localStorage.getItem(CACHE_KEY);
+			if (!raw) return null;
+			var data = JSON.parse(raw);
+			if (Date.now() - data.timestamp < CACHE_DURATION) {
+				return data.data;
+			}
+			return null;
+		} catch (e) { return null; }
+	}
+
+	function setCache(data) {
+		try {
+			localStorage.setItem(CACHE_KEY, JSON.stringify({
+				data: data,
+				timestamp: Date.now()
+			}));
+		} catch (e) { /* ignore */ }
+	}
+
+	function loadQuote(widgets, forceRefresh) {
+		widgets.forEach(function (w) {
+			showLoading(w.ui);
+		});
+
+		// 尝试从缓存读取
+		if (!forceRefresh) {
+			var cached = sharedData || getCache();
+			if (cached) {
+				sharedData = cached;
+				widgets.forEach(function (w) {
+					renderQuote(w.ui, cached);
+				});
+				return;
+			}
+		}
+
+		fetchQuote().then(function (data) {
+			widgets.forEach(function (w) {
+				renderQuote(w.ui, data);
+			});
+		}).catch(function (err) {
+			console.warn('Daily quote API error:', err);
+			widgets.forEach(function (w) {
+				hideLoading(w.ui);
+				w.ui.text.innerText = '获取失败，点击刷新重试';
+				w.ui.author.innerText = '—';
+			});
+		});
+	}
+
+	function initWidget(widget) {
+		var ui = {
+			text: widget.querySelector('.daily-quote-text'),
+			author: widget.querySelector('.daily-quote-author'),
+			refreshBtn: widget.querySelector('.daily-quote-refresh'),
+			loading: widget.querySelector('.daily-quote-loading')
+		};
+
+		return { widget: widget, ui: ui };
+	}
+
+	// 查找所有每日一言组件
+	var allWidgets = document.querySelectorAll('.daily-quote-widget');
+	if (!allWidgets || allWidgets.length === 0) return;
+
+	var widgets = [];
+	allWidgets.forEach(function (w) {
+		widgets.push(initWidget(w));
+	});
+
+	// 绑定刷新按钮（每个按钮独立触发）
+	widgets.forEach(function (w) {
+		w.ui.refreshBtn.addEventListener('click', function () {
+			// 点击刷新时，所有实例同步更新
+			loadQuote(widgets, true);
+		});
+	});
+
+	// 初始化
+	function init() {
+		setTimeout(function () {
+			loadQuote(widgets, false);
+		}, 800);
+	}
+
+	if (document.readyState === 'complete') {
+		init();
+	} else {
+		window.addEventListener('load', init, { once: true });
+	}
+})();
+</script>
+
+<style>
+	.daily-quote-widget {
+		min-height: 72px;
+	}
+
+	.quote-icon {
+		pointer-events: none;
+	}
+
+	.daily-quote-text {
+		transition: color 0.2s ease;
+		word-break: break-word;
+	}
+
+	.daily-quote-refresh {
+		transition: transform 0.2s ease;
+		padding: 4px;
+		min-width: 28px;
+		min-height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 6px;
+	}
+
+	.daily-quote-refresh:hover {
+		transform: rotate(180deg);
+	}
+
+	.daily-quote-refresh:active {
+		transform: rotate(180deg) scale(0.9);
+	}
+
+	/* 移动端优化 */
+	@media (max-width: 768px) {
+		.daily-quote-widget {
+			min-height: 64px;
+		}
+
+		.daily-quote-content {
+			padding: 0;
+		}
+
+		.daily-quote-refresh {
+			min-width: 32px;
+			min-height: 32px;
+		}
+	}
+</style>

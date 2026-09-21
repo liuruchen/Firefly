@@ -354,7 +354,17 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				// 使用轮询模式避免 Windows 上 chokidar 因访问系统文件（如 C:\DumpStack.log.tmp）而崩溃
+				usePolling: true,
+				interval: 1000,
+				binaryInterval: 2000,
+				ignored: [
+					"**/package/**",
+					"**/Firefly-docs/**",
+					"**/node_modules/**",
+					"**/.git/**",
+					"**/dist/**",
+				],
 			},
 		},
 		resolve: {

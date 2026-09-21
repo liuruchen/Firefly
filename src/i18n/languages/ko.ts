@@ -547,4 +547,9 @@ export const ko: Translation = {
 	[Key.weatherWind]: "풍속",
 	[Key.weatherDenied]: "위치 권한 거부됨\n클릭하여 재시도",
 	[Key.weatherRetry]: "재시도",
+
+	// 명언 위젯
+	[Key.dailyQuoteTitle]: "오늘의 명언",
+	[Key.dailyQuoteLoading]: "로딩 중...",
+	[Key.dailyQuoteRefresh]: "새로고침",
 };

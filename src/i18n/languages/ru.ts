@@ -551,4 +551,9 @@ export const ru: Translation = {
 	[Key.weatherWind]: "Ветер",
 	[Key.weatherDenied]: "Геолокация отклонена\nНажмите для повтора",
 	[Key.weatherRetry]: "Повторить",
+
+	// Цитата дня
+	[Key.dailyQuoteTitle]: "Цитата дня",
+	[Key.dailyQuoteLoading]: "Загрузка...",
+	[Key.dailyQuoteRefresh]: "Обновить",
 };

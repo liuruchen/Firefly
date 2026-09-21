@@ -547,4 +547,9 @@ export const ja: Translation = {
 	[Key.weatherWind]: "風速",
 	[Key.weatherDenied]: "位置情報が拒否されました\nクリックして再試行",
 	[Key.weatherRetry]: "再試行",
+
+	// 每日一言ウィジェット
+	[Key.dailyQuoteTitle]: "今日の一言",
+	[Key.dailyQuoteLoading]: "読み込み中...",
+	[Key.dailyQuoteRefresh]: "更新",
 };

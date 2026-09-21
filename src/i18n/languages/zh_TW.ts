@@ -539,4 +539,9 @@ export const zh_TW: Translation = {
 	[Key.weatherWind]: "風速",
 	[Key.weatherDenied]: "定位權限被拒絕\n點擊重試授權",
 	[Key.weatherRetry]: "重試",
+
+	// 每日一言組件
+	[Key.dailyQuoteTitle]: "每日一言",
+	[Key.dailyQuoteLoading]: "載入中...",
+	[Key.dailyQuoteRefresh]: "換一句",
 };

@@ -550,4 +550,9 @@ export const en: Translation = {
 	[Key.weatherWind]: "Wind",
 	[Key.weatherDenied]: "Location permission denied\nClick to retry",
 	[Key.weatherRetry]: "Retry",
+
+	// Daily Quote widget
+	[Key.dailyQuoteTitle]: "Daily Quote",
+	[Key.dailyQuoteLoading]: "Loading...",
+	[Key.dailyQuoteRefresh]: "Refresh",
 };

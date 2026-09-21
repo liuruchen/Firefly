@@ -531,6 +531,11 @@ enum I18nKey {
 	weatherWind = "weatherWind",
 	weatherDenied = "weatherDenied",
 	weatherRetry = "weatherRetry",
+
+	// 每日一言
+	dailyQuoteTitle = "dailyQuoteTitle",
+	dailyQuoteLoading = "dailyQuoteLoading",
+	dailyQuoteRefresh = "dailyQuoteRefresh",
 }
 
 export default I18nKey;
