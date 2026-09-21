@@ -5,7 +5,7 @@ updated: 2026-09-21
 draft: false
 description: Legacy+ 项目将其定位为一条与 MC 实际发展历史不同的平行发展路线。Legacy+ 是由 Yoniko 主导的 MC
   历史版本改造项目集合，早期主要包含 Classic+、Indev+ 与 Minecraft Infinite(indfev+)。
-image: /images/远古版本模组三部曲：Legacy+【Paladin_Ryan】_-_bibz.me_-_cover.jpg
+image: https://i1.hdslb.com/bfs/archive/ba8f2178b508edce23fdc2a7d6f0322bca25ecd2.jpg
 tags:
   - Markdown
   - 教程
