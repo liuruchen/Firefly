@@ -25,6 +25,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import CoverImage from "@/components/common/CoverImage.astro";
 import PostMetadata from "@/components/layout/PostMeta.astro";
+import ArticleReader from "@/components/misc/ArticleReader.astro";
 import RecommendedPost from "@/components/misc/RecommendedPost.astro";
 import SeriesNav from "@/components/misc/SeriesNav.astro";
 import SharePoster from "@/components/misc/SharePoster.svelte";
@@ -426,6 +427,8 @@ const seriesData = await getSeriesPosts(entry);
           </div>
         )
       }
+
+      <ArticleReader />
 
       {entry.data.password ? (
         <EncryptedPost password={entry.data.password} slug={entry.id} hint={entry.data.passwordHint}>
